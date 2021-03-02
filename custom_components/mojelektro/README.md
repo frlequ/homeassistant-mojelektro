@@ -27,6 +27,7 @@ C = SI, O = Halcom d.d., organizationIdentifier = VATSI-43353126, CN = Halcom CA
 C = SI, O = Halcom d.d., organizationIdentifier = VATSI-43353126, CN = Halcom Root Certificate Authority
 ```
 
+Also as the data is always reported for the previous day, and I couldn't find a way to tell HA to log sensor data to the past, data will always be one day off.
 
 (The code is based on https://github.com/home-assistant/example-custom-config/tree/master/custom_components/example_load_platform)
 
