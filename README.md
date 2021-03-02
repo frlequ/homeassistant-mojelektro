@@ -4,4 +4,4 @@ This is custom component for integrating electric utility meter data into Home A
 As mojelektro.si requires 2 factor authentication, this solution uses key-cert login.  
 Unfortunately self signed certs don't works as it needs to be signed by one of the following CA
 
-For instalation details see /custom_components/mojelektro/README.md
+For instalation details see https://github.com/saso5/homeassistant-mojelektro/blob/main/custom_components/mojelektro/README.md
