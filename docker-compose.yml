@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  mojelektro:
+    image: mojelektro
+    volumes:
+      - "./custom_components/mojelektro/:/app/"
+    build:
+      context: .
+      dockerfile: ./Dockerfile
