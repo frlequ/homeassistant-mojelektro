@@ -129,6 +129,7 @@ class MojElektroApi:
             params={"datumCasOd": dateFrom, "datumCasDo": dateTo, "flat": "true"}
         )
         assert r.json()['success'] == True
+        assert len(r.json()['data']) > 0
 
         # [{ "datum": "2021-02-28T00:00:00+01:00", 
         # "PREJETA DELOVNA ENERGIJA ET": 2562, "PREJETA DELOVNA ENERGIJA VT": 1072, "PREJETA DELOVNA ENERGIJA MT": 1490, 
