@@ -1,219 +1,174 @@
 import requests
-import logging
 from datetime import datetime, timedelta
-import os
-import re
+import logging
+import json
 
 _LOGGER = logging.getLogger(__name__)
-DIR = os.path.dirname(os.path.realpath(__file__))
+
 
 class MojElektroApi:
-
-    username = None
-    password = None
+    
+    
+    r_15min = '&option=ReadingType%3D32.0.2.4.1.2.12.0.0.0.0.0.0.0.0.3.72.0'
+    r_daily = '&option=ReadingType%3D32.0.4.1.1.2.12.0.0.0.0.1.0.0.0.3.72.0&option=ReadingType%3D32.0.4.1.1.2.12.0.0.0.0.2.0.0.0.3.72.0&option=ReadingType%3D32.0.4.1.1.2.12.0.0.0.0.0.0.0.0.3.72.0'
+    
     meter_id = None
-
-    session = requests.Session()
-    csrf = None
     token = None
-
+    date_from = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    date_to = datetime.now().strftime("%Y-%m-%d")
+    
+    
+    
     cache = None
     cacheDate = None
+    cacheOK = False
 
-    def __init__(self, username, password, meter_id): 
-        self.username = username
-        self.password = password
+
+    
+    def __init__(self, token, meter_id): 
         self.meter_id = meter_id
-
-    def updateOauthToken(self):
-        if self.isTokenValid():
-            _LOGGER.debug("Token is valid")
-            return
-
-        try:
-            self.initRekonoSession()
-            self.rekonoLogin()
-            self.confirmWithCert()
-        except Exception as err_msg:
-            _LOGGER.error("Error! %s", err_msg)
-            raise
-
-    def initRekonoSession(self):
-        response = self.session.get("https://idp.rekono.si/openid-connect-server-webapp/authorize?response_type=code&client_id=SEDMPWEB&state=&redirect_uri=https%3A%2F%2Fmojelektro.si&scope=address%20phone%20openid%20profile%20email%20http%3A%2F%2Fidp.rekono.si%2Fopenid%2Ftaxnumber")
-
-        assert response.status_code == 200
-
-        _LOGGER.debug("JSession: " + self.session.cookies.get('JSESSIONID', path='/IdP-RM-Front'))
-        _LOGGER.debug("Init redirect url: " + response.url)
-
-        csrfSearch = re.search(r'_csrf.*value=\"([a-z0-9\-]*)\"', response.text)
-
-        self.csrf = csrfSearch.group(1)
-    
-    def rekonoLogin(self):        
-        payload = {"_csrf": self.csrf, "doaction": "doaction", "username": self.username, "password": self.password}
-
-        response = self.session.post('https://idp.rekono.si/IdP-RM-Front/chooselogin/rekono.htm', data=payload)
-
-        assert response.status_code == 200
-
-    def confirmWithCert(self):
-        payload = {"_csrf": self.csrf, "mode": "certlogin"}
-        response = self.session.post('https://idp.rekono.si/IdP-RM-Front/chooselogin/options.htm', 
-            allow_redirects=False,
-            data=payload
-        )
-        assert response.status_code == 302
+        self.token = token
 
 
-        certRes = requests.Session().get('https://idp.rekono.si/IdP-RM-Front/certlogin.htm', 
-            cert=(DIR + '/crt.pem', DIR + '/key.pem'), 
-            cookies = {'JSESSIONID': self.session.cookies.get('JSESSIONID', path='/IdP-RM-Front')}
-        )
+    def getMeterReadings(self, rType = None):
+        
 
-        assert certRes.status_code == 200
-        token = re.search(r'token.*value=\"([a-z0-9\-]*)\"', certRes.text).group(1)
+        if (rType == '15min'):
+            self.readingType = self.r_15min
+            self.date_from = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        else:
+            self.readingType = self.r_daily
+            self.date_from = datetime.now().replace(day=1).strftime("%Y-%m-%d")
+            
         
         
-        response = self.session.get('https://idp.rekono.si/openid-connect-server-webapp/callback?token=' + token)
-        
-        assert response.status_code == 200
-
-        #https://mojelektro.si?code=PKaKA6uPOpEU7Xryrx8255sGP83Hv3fG&state=
-        code = re.search(r'code\=(.*?)&', response.url).group(1)
-
-
-        payload = {
-            "grant_type":"authorization_code",
-            "code": code, 
-            "redirect_uri": "https://mojelektro.si",
-            "client_id": "SEDMPWEB",
-            "client_secret": "deacJn54-nQsjmfTvQ5As5odBs51docg8NUc6KxL4iSDhoOMIqv25BhP3xM8vlLidjfKr6bsTj9j12M3dJ2wuw"
+        url = f'https://api.informatika.si/mojelektro/v1/meter-readings?usagePoint={self.meter_id}&startTime={self.date_from}&endTime={self.date_to}{self.readingType}'
+        headers = {
+            "accept": "application/json",
+            "X-API-TOKEN": self.token
         }
+        params = {
 
-        response = self.session.post('https://idp.rekono.si/openid-connect-server-webapp/token', data=payload)
-        assert response.status_code == 200
-        
-        self.token = response.json()['access_token']
-        _LOGGER.debug("Generted token: " + self.token)
+        }
+        _LOGGER.debug(f"Connecting and getting meter data for day: {self.date_from} - {self.date_to}")
+        try:
+            r = requests.get(url, headers=headers, params=params)
+            r.raise_for_status()  # Raise an exception for HTTP errors
 
+            # Check if the response has 'intervalBlocks' key
+            if 'intervalBlocks' in r.json() and len(r.json()['intervalBlocks']) > 0:
+                # Assuming that the presence of 'intervalBlocks' indicates success
+                _LOGGER.debug(r.json())
+                return r.json()['intervalBlocks']
+            else:
+                _LOGGER.debug(f"API call was not successful. Response content: {r.text}")
+                return None
 
-    def get15MinIntervalData(self):
-        self.updateOauthToken()
+        except requests.exceptions.RequestException as e:
+            _LOGGER.debug(f"Error making API call: {e}")
+            return None
 
-        dateFrom = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%dT23:59:00")
-        dateTo = datetime.now().strftime("%Y-%m-%dT00:00:00")
-
-        _LOGGER.debug("15min interval request range: " + dateFrom + " - " + dateTo)
-        
-        r=requests.get(f'https://api.mojelektro.si/NmcApiStoritve/nmc/v1/merilnamesta/{self.meter_id}/odbirki/15min', 
-            headers={"authorization": ("Bearer " + self.token)},
-            params={"datumCasOd": dateFrom, "datumCasDo": dateTo, "flat": "true"}
-        )
-        assert r.json()['success'] == True
-
-        # [{'datum': '2021-02-24T09:30:00+01:00', 'A+': 0, 'A-': 0.825},... ]
-
-        return r.json()['data']
-
-    def getMeterData(self):
-        self.updateOauthToken()
-
-        dateFrom = (datetime.now()).strftime("%Y-%m-%dT00:00:00")
-        dateTo = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%dT00:00:00")
-
-        _LOGGER.debug("Meter state request range: " + dateFrom + " - " + dateTo)
-        
-        r=requests.get(f'https://api.mojelektro.si/NmcApiStoritve/nmc/v1/merilnamesta/{self.meter_id}/odbirki/dnevnaStanja', 
-            headers={"authorization": ("Bearer " + self.token)},
-            params={"datumCasOd": dateFrom, "datumCasDo": dateTo, "flat": "true"}
-        )
-        assert r.json()['success'] == True
-        assert len(r.json()['data']) > 0
-
-        # [{ "datum": "2021-02-28T00:00:00+01:00", 
-        # "PREJETA DELOVNA ENERGIJA ET": 2562, "PREJETA DELOVNA ENERGIJA VT": 1072, "PREJETA DELOVNA ENERGIJA MT": 1490, 
-        # "ODDANA DELOVNA ENERGIJA ET": 588, "ODDANA DELOVNA ENERGIJA VT": 410, "ODDANA DELOVNA ENERGIJA MT": 178 },... ]
-
-        return r.json()['data']
-
-
-    def getDailyData(self):
-        self.updateOauthToken()
-
-        dateFrom = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%dT00:00:00")
-        dateTo = datetime.now().strftime("%Y-%m-%dT00:00:00")
-
-        _LOGGER.debug("Daily state request range: " + dateFrom + " - " + dateTo)
-
-        r=requests.get(f'https://api.mojelektro.si/NmcApiStoritve/nmc/v1/merilnamesta/{self.meter_id}/odbirki/dnevnaPoraba', 
-            headers={"authorization": ("Bearer " + self.token)},
-            params={"datumCasOd": dateFrom, "datumCasDo": dateTo, "flat": "true"}
-        )
-
-        assert r.json()['success'] == True
-
-        # [{"datum":"2021-02-26T00:00:00+01:00",
-        # "PREJETA DELOVNA ENERGIJA ET":14.94,"PREJETA DELOVNA ENERGIJA VT":8.47,"PREJETA DELOVNA ENERGIJA MT":6.47,
-        # "ODDANA DELOVNA ENERGIJA ET":28.56,"ODDANA DELOVNA ENERGIJA VT":28.56,"ODDANA DELOVNA ENERGIJA MT":0.00}, ...]
-
-        return r.json()['data']
-    
 
     def getData(self):
+
         cache = self.getCache()
+        
+        sensorReturn = {}
+        
+        if (cache == None ):
+            _LOGGER.debug(f"No cache data!")
+            return None
+        else:
 
-        dMeter = cache.get("meter")[0]
-        dDaily = cache.get("daily")[0]
-        d15 = cache.get("15")[self.get15MinOffset()]
 
-        return {
-            "15min_input": d15['A+'], 
-            "15min_output": d15['A-'],
+            d15 = cache.get("15")[self.get15MinOffset()]
+            sensorReturn["15min_input"] = d15['value']
 
-            "meter_input": dMeter['PREJETA DELOVNA ENERGIJA ET'],
-            "meter_input_peak": dMeter['PREJETA DELOVNA ENERGIJA VT'],
-            "meter_input_offpeak": dMeter['PREJETA DELOVNA ENERGIJA MT'],
-            "meter_output": dMeter['ODDANA DELOVNA ENERGIJA ET'],
-            "meter_output_peak": dMeter['ODDANA DELOVNA ENERGIJA VT'],
-            "meter_output_offpeak": dMeter['ODDANA DELOVNA ENERGIJA MT'],
 
-            "daily_input": dDaily['PREJETA DELOVNA ENERGIJA ET'],
-            "daily_input_peak": dDaily['PREJETA DELOVNA ENERGIJA VT'],
-            "daily_input_offpeak": dDaily['PREJETA DELOVNA ENERGIJA MT'],
-            "daily_output": dDaily['ODDANA DELOVNA ENERGIJA ET'],
-            "daily_output_peak": dDaily['ODDANA DELOVNA ENERGIJA VT'],
-            "daily_output_offpeak": dDaily['ODDANA DELOVNA ENERGIJA MT']
-        }
+            sensorReturn["meter_input_peak"] = float(cache.get("VT")[int(len(cache.get("VT")))-1]['value'])
+            sensorReturn["meter_input_offpeak"] = float(cache.get("MT")[int(len(cache.get("MT")))-1]['value'])
+            sensorReturn["meter_input"] = float(cache.get("ET")[int(len(cache.get("ET")))-1]['value'])
+
+
+            sensorReturn["daily_input_peak"] = float(cache.get("VT")[int(len(cache.get("VT")))-1]['value']) - float(cache.get("VT")[int(len(cache.get("VT")))-2]['value'])
+            sensorReturn["daily_input_offpeak"] = float(cache.get("MT")[int(len(cache.get("MT")))-1]['value']) - float(cache.get("MT")[int(len(cache.get("MT")))-2]['value'])
+            sensorReturn["daily_input"] = float(cache.get("ET")[int(len(cache.get("ET")))-1]['value']) - float(cache.get("ET")[int(len(cache.get("ET")))-2]['value'])
+            
+            sensorReturn["monthly_input_peak"] = float(cache.get("VT")[int(len(cache.get("VT")))-1]['value']) - float(cache.get("VT")[0]['value'])
+            sensorReturn["monthly_input_offpeak"] = float(cache.get("MT")[int(len(cache.get("MT")))-1]['value']) - float(cache.get("MT")[0]['value'])
+            sensorReturn["monthly_input"] = float(cache.get("ET")[int(len(cache.get("ET")))-1]['value']) - float(cache.get("ET")[0]['value'])
+
+
+            #Test if mojElektro does have latest meter readings. A failsafe.
+            curDate = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+            machDate = datetime.strptime(cache.get("15")[0]['timestamp'], "%Y-%m-%dT%H:%M:%S%z").strftime("%Y-%m-%d")
+
+            if (curDate != machDate):
+                _LOGGER.debug("Not current date.")
+
+            sum15MinPart = sum(float(item['value']) for item in cache.get("15")[10:96])
+            sum15Min = round(sum(float(item['value']) for item in cache.get("15")[0:96]), 5)
+                          
+            sumET = round(sensorReturn["daily_input"],5)
+            
+            
+            if (sum15Min == sumET and sum15MinPart > 0 and curDate == machDate):
+                self.cacheOK = True
+                _LOGGER.debug(f"Meter data seems correct: {sum15Min} vs {sumET}. And date match.")
+                
+            elif (curDate != machDate):
+                self.cacheOK = False
+                _LOGGER.debug(f"Dates does not match: {curDate} and {machDate}")
+            else:
+                self.cacheOK = False
+                _LOGGER.debug(f"Meter does not match: {sum15Min} vs {sumET}. Or dates {curDate} and {machDate}. A possible mojElektro fault.")
+
+                        
+            if self.cacheOK == True:
+                self.cacheDate = datetime.today().date()
+                _LOGGER.debug("CacheDate updated to today, every data is ok")
+
+            return sensorReturn
 
     def getCache(self):
-        _LOGGER.debug("Rerfresing cache")
         
         if self.cache is None or self.cacheDate != datetime.today().date():
-            self.cache = {
-                "meter": self.getMeterData(), 
-                "daily": self.getDailyData(),
-                "15" : self.get15MinIntervalData()
-            }
-            self.cacheDate = datetime.today().date()
+            _LOGGER.debug("Cache has no stored data. Refreshing from API...")
+            
 
+            #Connect to API
+            meterReadings_15min = self.getMeterReadings('15min')
+            meterReadings_daily = self.getMeterReadings()   
+            
+            if (meterReadings_15min == None or (meterReadings_daily == None)):
+                _LOGGER.debug(f"No data recieved! Check user settings.")
+                return None
+            
+            if ('intervalReadings' in meterReadings_15min[0]) and ('intervalReadings' in meterReadings_daily[0]) and ('intervalReadings' in meterReadings_daily[1]) and ('intervalReadings' in meterReadings_daily[2]):
+                self.cache = {
+                    "15": meterReadings_15min[0]['intervalReadings'],
+                    "VT": meterReadings_daily[2]['intervalReadings'],
+                    "ET": meterReadings_daily[1]['intervalReadings'],
+                    "MT": meterReadings_daily[0]['intervalReadings'],
+
+                }
+
+            else:
+                _LOGGER.debug("Key 'intervalReadings' not found in one of the meterReadings entries.")
+           
+
+        
+        else:
+    
+            #Use Cached data
+            _LOGGER.debug("Cache has stored data. Will use self.cache.")
+            
         return self.cache
-
+        
+        
     def get15MinOffset(self):
         now = datetime.now()
-
-        return int((now.hour * 60 + now.minute)/15) 
-
-
-    def isTokenValid(self):
-        if self.token is None:
-            return False
-
-        #TODO: validate JWT token
-        r = requests.get("https://api.mojelektro.si/NmcApiStoritve/nmc/v1/user/info", 
-            headers={"authorization":"Bearer " + self.token})
         
-        _LOGGER.debug(f'Validation response {r.status_code}')
+        return int((now.hour * 60 + now.minute)/15)   
 
-        return r.status_code != 401
-        
+
