@@ -1,8 +1,10 @@
 {
   "domain": "mojelektro",
   "name": "Mojelektro Load Platform",
-  "documentation": "https://github.com/saso5/homeassistant-mojelektro",
+  "documentation": "https://github.com/frlequ/homeassistant-mojelektro",
   "dependencies": [],
   "codeowners": [],
-  "requirements": ["requests==2.25.1"]
+  "requirements": ["requests>=2.25.1"],
+  "iot_class": "cloud_polling",
+  "version": "0.1.0"
 }
