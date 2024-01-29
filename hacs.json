@@ -1,0 +1,5 @@
+{
+    "name": "Mojelektro Load Platform",
+    "homeassistant": "2023.8.0",
+    "render_readme": true,
+}
