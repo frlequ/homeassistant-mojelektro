@@ -3,21 +3,34 @@
 This is an updated version of the custom component for integrating electric utility meter data into Home Assistant. It no longer requires a local certificate to access Mojelektro but utilizes a **new API** service provided by Informatika.si.
 
 ### Warning for existing users:
-This update should not erase any existing sensors, but will not update the energy produced _(_output)_ entities.
+This update should not erase existing sensors, but will not update the energy produced `_output` entities.
+
+### Note about data:
+This integration gathers energy information with a 24-hour delay because API doesn't provide real-time data. Unfortunately, this delay leads to inaccurate readings, especially between midnight and 6 a.m as data aggregates. The problem lies with Mojelektro, and there's no way around it.
 
 
-### Setup API:
+
+## Setup API:
 
 1. Log in to Mojelektro.si using any available login options.
-2. Under Moj Profil, find the option to create a token _(Kreiraj žeton)_. Use unlimited expiration and click _"Create Token."_
-4. Copy the newly generated token. You'll need it in the next step.
-5. Your meter_id is EIMM number found und _Merilna mesta/merilne točke_
+2. Under `Moj Profil`, find the option to create a token `Kreiraj žeton`. Use unlimited expiration and click  `Create Token.`
+4. Copy the newly generated token. You'll need it in the configuration step.
+5. Your `meter_id` is `EIMM` number found und `Merilna mesta/merilne točke`
 
 
-### Installation
+## Installation
 
-1. Copy this folder to `<config_dir>/custom_components/mojelektro/`.
-2. Add the following entry in your `configuration.yaml`:
+Method 1: [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=frlequ&repository=homeassistant-mojelektro&category=integration)
+
+Method 2: HACS > Integrations > Add Integration > Mojelektro Load Platform > Install
+
+Method 3: Manually copy `Mojelektro Load Platform` folder from latest release to `config/custom_components folder`.
+
+_Restart Home Assistant_
+
+## Configuration
+
+1. Add the following entry in your `configuration.yaml`:
    
     ```yaml
     mojelektro:
