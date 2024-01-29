@@ -3,8 +3,9 @@
   "name": "Mojelektro Load Platform",
   "documentation": "https://github.com/frlequ/homeassistant-mojelektro",
   "dependencies": [],
-  "codeowners": [],
+  "codeowners": ["@frlequ"],
   "requirements": ["requests>=2.25.1"],
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/frlequ/homeassistant-mojelektro/issues",
   "version": "0.1.0"
 }
