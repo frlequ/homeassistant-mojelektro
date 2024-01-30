@@ -1,5 +1,5 @@
-[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Ffrlequ%2Fhomeassistant-mojelektro&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
-![GitHub issues](https://img.shields.io/github/issues/frlequ/homeassistant-mojelektro)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Ffrlequ%2Fhomeassistant-mojelektro&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://github.com/frlequ/homeassistant-mojelektro/)
+[![GitHub issues](https://img.shields.io/github/issues/frlequ/homeassistant-mojelektro)](https://github.com/frlequ/homeassistant-mojelektro/issues) [![Github All Releases](https://img.shields.io/github/downloads/frlequ/homeassistant-mojelektro/total.svg)](https://github.com/frlequ/homeassistant-mojelektro/releases/)
 
 
 # Home Assistant Integration of Moj Elektro electricity meter
