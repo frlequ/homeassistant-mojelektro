@@ -6,6 +6,8 @@
 
 This is an updated version of the custom component for integrating electric utility meter data into Home Assistant. It no longer requires a local certificate to access Mojelektro but utilizes a **new API** service provided by Informatika.si.
 
+![Screenshot of a Mojelectro in Home Assistant using Apex Chart Card.](/energy.png)
+
 ### Warning for existing users:
 This update should not erase existing sensors, but will not update the energy produced `_output` entities.
 
