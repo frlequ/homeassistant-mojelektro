@@ -9,7 +9,8 @@ This is an updated version of the custom component for integrating electric util
 ![Screenshot of a Mojelectro in Home Assistant using Apex Chart Card.](/energy.png)
 
 ### Warning for existing users:
-This update should not erase existing sensors, but will not update the energy produced `_output` entities.
+This update should not erase existing sensors, ~~but will not update the energy produced _output entities.~~
+(Update in the latest version)
 
 ### Note about data:
 This integration gathers energy information with a 24-hour delay because API doesn't provide real-time data. Unfortunately, this delay leads to inaccurate readings, especially between midnight and 6 a.m as data aggregates. The problem lies with Mojelektro, and there's no way around it.
