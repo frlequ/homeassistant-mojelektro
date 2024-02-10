@@ -1,11 +1,11 @@
 {
   "domain": "mojelektro",
-  "name": "Mojelektro Load Platform",
+  "name": "Moj Elektro",
   "documentation": "https://github.com/frlequ/homeassistant-mojelektro",
   "dependencies": [],
-  "codeowners": ["@frlequ"],
+  "codeowners": [],
+  "config_flow": true,
   "requirements": ["requests>=2.25.1"],
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/frlequ/homeassistant-mojelektro/issues",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

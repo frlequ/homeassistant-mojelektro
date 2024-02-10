@@ -1,107 +1,96 @@
-"""Platform for sensor integration."""
-from __future__ import annotations
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import DEVICE_CLASS_ENERGY
-from homeassistant.const import ENERGY_KILO_WATT_HOUR
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
+
+from homeassistant.const import (
+    ENERGY_KILO_WATT_HOUR,
+    DEVICE_CLASS_ENERGY,
+)
+
+
+from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
 from homeassistant.helpers.entity import Entity, generate_entity_id
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-
-from . import DOMAIN, CONF_METER_ID
-
-from random import randint
+from .const import DOMAIN, CONF_TOKEN, CONF_METER_ID, CONF_DECIMAL
+from .moj_elektro_api import MojElektroApi  # Ensure this matches the actual location and name
 import logging
+from datetime import timedelta
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None
-) -> None:
-    """Set up the sensor platform."""
-    # We only want this platform to be set up via discovery.
-    if discovery_info is None:
-        return
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
+    """Set up MojeElektro sensors dynamically from a config entry."""
     
-    meter_id = discovery_info[CONF_METER_ID]
-
-    add_entities([Mojelektro("meter_input", hass, meter_id)])
-    add_entities([Mojelektro("meter_input_peak", hass, meter_id)])
-    add_entities([Mojelektro("meter_input_offpeak", hass, meter_id)])
-    add_entities([Mojelektro("meter_output", hass, meter_id)])
-    add_entities([Mojelektro("meter_output_peak", hass, meter_id)])
-    add_entities([Mojelektro("meter_output_offpeak", hass, meter_id)])
-
-    add_entities([Mojelektro("daily_input", hass, meter_id)])
-    add_entities([Mojelektro("daily_input_peak", hass, meter_id)])
-    add_entities([Mojelektro("daily_input_offpeak", hass, meter_id)])
-    add_entities([Mojelektro("daily_output", hass, meter_id)])
-    add_entities([Mojelektro("daily_output_peak", hass, meter_id)])
-    add_entities([Mojelektro("daily_output_offpeak", hass, meter_id)])
-
-    add_entities([Mojelektro("15min_output", hass, meter_id)])
-    add_entities([Mojelektro("15min_input", hass, meter_id)])
     
-    add_entities([Mojelektro("monthly_input", hass, meter_id)])
-    add_entities([Mojelektro("monthly_input_peak", hass, meter_id)])
-    add_entities([Mojelektro("monthly_input_offpeak", hass, meter_id)])
-
-
-
-class Mojelektro(SensorEntity):
-    """Representation of a sensor."""
-
-    type = None
-
-    def __init__(self, type, hass, meter_id) -> None:
-        """Initialize the sensor."""
-        super().__init__()
-
-        self._state = None
-        self.type = type
-        self.entity_id = generate_entity_id(ENTITY_ID_FORMAT, DOMAIN + "_" + type, hass=hass)
-        self._unique_id = "{}-{}".format(meter_id, self.entity_id)
+    token = entry.data[CONF_TOKEN]
+    meter_id = entry.data[CONF_METER_ID]
+    decimal = entry.data.get(CONF_DECIMAL)
+    session = async_get_clientsession(hass)
     
-    @property
-    def unique_id(self):
-        """Return a unique ID."""
-        return self._unique_id
     
-    @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        return "MojElektro " + self.type
+    api = MojElektroApi(token, meter_id, decimal, session)
+
+    # Initialize the update coordinator
+    coordinator = DataUpdateCoordinator(
+        hass,
+        _LOGGER,
+        name="mojelektro_sensor",
+        update_method=api.getData,
+        update_interval=timedelta(seconds=30),  # Adjust as necessary
+    )
+
+    # Fetch initial data
+    await coordinator.async_refresh()
+
+    # Store coordinator for reference in sensor entities
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+    #hass.data[DOMAIN][entry.entry_id]['coordinator'] = coordinator
+    
+
+    # Corrected part: Directly iterate over keys of coordinator.data
+    sensors = [
+        MojElektroSensor(coordinator, entry.entry_id, measurement, meter_id, hass)
+        for measurement in coordinator.data.keys()
+    ]
+    async_add_entities(sensors)
+
+
+class MojElektroSensor(CoordinatorEntity, SensorEntity):
+    """Representation of a Sensor from MojElektro."""
+
+    def __init__(self, coordinator, entry_id, measurement_name, meter_id, hass):
+        
+
+        super().__init__(coordinator)
+        
+        current_ids = hass.states.async_entity_ids()
+        entity_id = generate_entity_id( ENTITY_ID_FORMAT, f"{DOMAIN}_{measurement_name.lower()}", current_ids )
+        
+        self._attr_unique_id = f"{meter_id}-{entity_id}"
+        self._attr_name = f"Moj Elektro {measurement_name.replace('_', ' ')}"
+        self.measurement_name = measurement_name
+        self._attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+        self._attr_unit_of_measurement = "kWh"  # Direct string to avoid any confusion
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        self._attr_icon = "mdi:transmission-tower"
+        self._attr_device_class = SensorDeviceClass.ENERGY
+
 
     @property
     def state(self):
         """Return the state of the sensor."""
-        return self._state
-
-    @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement."""
-        return ENERGY_KILO_WATT_HOUR
-
-    @property
-    def state_class(self):
-        """Return the state class."""
-        return "total_increasing"
-
-    @property
-    def device_class(self):
-        """Return the device class."""
-        return DEVICE_CLASS_ENERGY
-    
-    def update(self) -> None:
-        """Fetch new state data for the sensor.
-
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self._state = self.hass.data[DOMAIN].get(self.type)
+        data = self.coordinator.data.get(self.measurement_name)
+        return float(data) if data is not None else None
