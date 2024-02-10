@@ -18,15 +18,6 @@ This update should not erase existing sensors, but will not update the energy pr
 ### Note about data:
 This integration gathers energy information with a 24-hour delay because API doesn't provide real-time data. Unfortunately, this delay leads to inaccurate readings, especially between midnight and 6 a.m as data aggregates. The problem lies with Moj Elektro, and there's no way around it.
 
-## Roadmap
-
-- [X] Add energy output sensors
-- [ ] Add config flow (Home Assistant UI setup)
-- [ ] Add decimals options for meters
-- [ ] Add option to save to long term statistics
-- [ ] Multi-language Support
-    - [ ] English
-    - [ ] Slovenian
 
 ## Setup API:
 
