@@ -12,14 +12,14 @@ This is an updated version of the custom component for integrating electric util
 
 
 
-### Warning for existing users:
-This update should not erase existing sensors, but will not update the energy produced `_output` entities.
+### Warning for existing users
+This update should not erase existing sensors, ~~but will not update the energy produced `_output` entities.~~ Fixed!
 
-### Note about data:
-This integration gathers energy information with a 24-hour delay because API doesn't provide real-time data. Unfortunately, this delay leads to inaccurate readings, especially between midnight and 6 a.m as data aggregates. The problem lies with Moj Elektro, and there's no way around it.
+> [!NOTE]
+> Note about data: This integration gathers energy information with a 24-hour delay because API doesn't provide real-time data. Unfortunately, this delay leads to inaccurate readings, especially between midnight and 6 a.m as data aggregates. The problem lies with Moj Elektro, and there's no way around it.
 
 
-## Setup API:
+## Setup API
 
 1. Log in to Mojelektro.si using any available login options.
 2. Under `Moj Profil`, find the option to create a token `Kreiraj žeton`. Use unlimited expiration and click  `Create Token.`
@@ -29,32 +29,21 @@ This integration gathers energy information with a 24-hour delay because API doe
 
 ## Installation
 
-Method 1: [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=frlequ&repository=homeassistant-mojelektro&category=integration)
+**Method 1 _(easiest)_:** [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=frlequ&repository=homeassistant-mojelektro&category=integration)
 
-Method 2: HACS > Integrations > Add Integration > Moj Elektro > Install
-
-Method 3: Manually copy `Moj Elektro` folder from latest release to `config/custom_components folder`.
+**Method 2:** Manually copy `mojelektro` folder from [latest release](https://github.com/frlequ/homeassistant-mojelektro/releases/latest) to `custom_components` folder.
 
 _Restart Home Assistant_
 
 ## Configuration
-_As for version 0.2.0 there is no need for `configuration.yaml` file edit!_
+> [!NOTE]
+> _As for version 0.2.0 there is no need for `configuration.yaml` file edit!_
 
+In Home Assistant
 1. Go to Settings > Add intergration > search > Moj Elektro
 2. Enter credentials:
 
 ![Screenshot of a Moj Electro setup in Home Assistant.](/assets/setup.jpg)
-
-
-
-~~1. Add the following entry in your `configuration.yaml`:~~
- ~~  
-    ```yaml
-    mojelektro:
-      token: <your-token-from-mojelektro>
-      meter_id: <your-meter-id>
-    ```
-~~
 
 
 ## Roadmap
