@@ -16,7 +16,7 @@ This is an updated version of the custom component for integrating electric util
 This update should not erase existing sensors, ~~but will not update the energy produced `_output` entities.~~ Fixed!
 
 > [!NOTE]
-> Note about data: This integration gathers energy information with a 24-hour delay because API doesn't provide real-time data. Unfortunately, this delay leads to inaccurate readings, especially between midnight and 6 a.m as data aggregates. The problem lies with Moj Elektro, and there's no way around it.
+> **Note about data:** This integration gathers energy information with a 24-hour delay because API doesn't provide real-time data. Unfortunately, this delay leads to inaccurate readings, especially between midnight and 6 a.m as data aggregates. The problem lies with Moj Elektro, and there's no way around it.
 
 
 ## Setup API
@@ -36,15 +36,14 @@ This update should not erase existing sensors, ~~but will not update the energy 
 _Restart Home Assistant_
 
 ## Configuration
-> [!NOTE]
-> _As for version 0.2.0 there is no need for `configuration.yaml` file edit!_
-
 In Home Assistant
 1. Go to Settings > Add intergration > search > Moj Elektro
 2. Enter credentials:
 
 ![Screenshot of a Moj Electro setup in Home Assistant.](/assets/setup.jpg)
 
+> [!NOTE]
+> _As for version 0.2.0 there is no need for `configuration.yaml` file edit!_
 
 ## Roadmap
 
@@ -59,4 +58,4 @@ In Home Assistant
 
 ## Report any issues
 
-Thanks and consider giving me a🌟star
+Thanks and consider giving me a 🌟 star
