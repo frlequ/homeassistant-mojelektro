@@ -9,6 +9,7 @@
 This is an updated version of the custom component for integrating electric utility meter data into Home Assistant. It no longer requires a local certificate to access Moj Elektro but utilizes a **new API** service provided by Informatika.si.
 
 ![Screenshot of a Moj Electro in Home Assistant using Apex Chart Card.](/assets/energy.jpg)
+<sub> *Example of Moj Elektro API using Apex Chart Card. You can find yaml in https://github.com/frlequ/mojelektro-apex-chart </sub> 
 
 
 
