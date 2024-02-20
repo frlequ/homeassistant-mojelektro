@@ -1,4 +1,5 @@
 # Configuration for MojElektroApi
+
 DOMAIN = "mojelektro"
 CONF_TOKEN = "token"  # Adjusted from TOKEN to CONF_TOKEN
 CONF_METER_ID = "meter_id"  # Adjusted from METER_ID to CONF_METER_ID
