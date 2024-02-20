@@ -1,6 +1,7 @@
 name: Python check
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "Code-clean-up" ]
   pull_request:
