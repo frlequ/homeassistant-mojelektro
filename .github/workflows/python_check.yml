@@ -1,8 +1,9 @@
 name: Python check
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: [ "Code-clean-up" ]
   pull_request:
     branches: [ "main" ]
 
