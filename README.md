@@ -1,4 +1,4 @@
-[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Ffrlequ%2Fhomeassistant-mojelektro&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://github.com/frlequ/homeassistant-mojelektro/)[![GitHub](https://img.shields.io/github/license/frlequ/homeassistant-mojelektro?color=red)](https://github.com/frlequ/homeassistant-mojelektro/blob/main/LICENSE)[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/frlequ/homeassistant-mojelektro/python_check.yml?branch=Code-clean-up&label=checks)](https://github.com/frlequ/homeassistant-mojelektro/actions/workflows/python_check.yml)[![GitHub issues](https://img.shields.io/github/issues/frlequ/homeassistant-mojelektro)](https://github.com/frlequ/homeassistant-mojelektro/issues) 
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Ffrlequ%2Fhomeassistant-mojelektro&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://github.com/frlequ/homeassistant-mojelektro/) [![GitHub](https://img.shields.io/github/license/frlequ/homeassistant-mojelektro?color=red)](https://github.com/frlequ/homeassistant-mojelektro/blob/main/LICENSE) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/frlequ/homeassistant-mojelektro/python_check.yml?branch=Code-clean-up&label=checks)](https://github.com/frlequ/homeassistant-mojelektro/actions/workflows/python_check.yml) [![GitHub issues](https://img.shields.io/github/issues/frlequ/homeassistant-mojelektro)](https://github.com/frlequ/homeassistant-mojelektro/issues) 
 ![GitHub User's stars](https://img.shields.io/github/stars/frlequ)
 ![GitHub Repo stars](https://img.shields.io/github/stars/frlequ/homeassistant-mojelektro)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/frlequ/homeassistant-mojelektro?color=green)](https://github.com/frlequ/homeassistant-mojelektro/releases/latest)
@@ -54,7 +54,7 @@ In Home Assistant
 - [ ] Add option to save to long term statistics
 - [X] Multi-language Support
     - [X] English
-    - [ ] Slovenian
+    - [X] Slovenian
 
 
 ## Report any issues
