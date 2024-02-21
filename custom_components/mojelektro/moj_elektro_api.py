@@ -26,7 +26,7 @@ class MojElektroApi:
         self.cache_date = None
         self.cacheOK = False
         self.last_data = None
-        self.first_load = None
+
 
     async def validate_token(self):
         """Validate the token by using the getMeterReadings method."""
