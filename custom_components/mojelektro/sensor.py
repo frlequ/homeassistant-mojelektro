@@ -79,6 +79,8 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{meter_id}-{entity_id}"
         self._attr_name = f"Moj Elektro {measurement_name.replace('_', ' ')}"
         self.measurement_name = measurement_name
+        self._last_known_state = None
+        
         if self.measurement_name.startswith('casovniBlok'):
             # For casovniBlok sensors
             self._attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
@@ -99,7 +101,14 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
         data = self.coordinator.data.get(self.measurement_name)
         if data is not None:
             try:
-                return float(data)
+                # Store the current data as the last known good state
+                self._last_known_state = float(data)
+                return self._last_known_state
             except ValueError:
-                return None
+                pass
+        
+        # If data is None or invalid, return the last known good state for casovniBlok sensors
+        if self.measurement_name.startswith('casovniBlok'):
+            return self._last_known_state
+            
         return None

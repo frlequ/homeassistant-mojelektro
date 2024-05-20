@@ -46,7 +46,7 @@ class MojElektroApi:
                     return data.get('intervalBlocks') if 'intervalBlocks' in data else None
                 else:
                     _LOGGER.error(f"HTTP error {response.status} when getting meter readings.")
-                return None
+                    return None
         except aiohttp.ClientError as e:
             _LOGGER.error(f"Error making API call: {e}")
             return None
