@@ -51,6 +51,7 @@ In Home Assistant
 - [X] Add energy output sensors
 - [X] Add config flow (Home Assistant UI setup)
 - [X] Add decimals options for meters
+- [X] Add tariff block power
 - [ ] Add option to save to long term statistics
 - [X] Multi-language Support
     - [X] English
