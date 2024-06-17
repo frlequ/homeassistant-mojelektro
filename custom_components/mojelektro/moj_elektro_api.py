@@ -316,5 +316,5 @@ class MojElektroApi:
         """Extract 'casovni bloki' from 'dogovorjene moci'."""
         for moca in dogovorjene_moci:
             if moca.get('veljavnost'):
-                return {f'casovniBlok{i}': moca.get(f'casovniBlok{i}', 'N/A') for i in range(1, 6)}
+                return {f'casovni_blok_{i}': moca.get(f'casovni_blok_{i}', 'N/A') for i in range(1, 6)}
         return {}
