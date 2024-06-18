@@ -81,7 +81,7 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
         self.measurement_name = measurement_name
         self._last_known_state = None
         
-        if self.measurement_name.startswith('casovniBlok'):
+        if self.measurement_name.startswith('casovni_blok'):
             # For casovniBlok sensors
             self._attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
             self._attr_unit_of_measurement = "kW"  # Direct string to avoid any confusion
@@ -108,7 +108,7 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
                 pass
         
         # If data is None or invalid, return the last known good state for casovniBlok sensors
-        if self.measurement_name.startswith('casovniBlok'):
+        if self.measurement_name.startswith('casovni_blok'):
             return self._last_known_state
             
         return None
