@@ -86,7 +86,7 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
             self._attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
             self._attr_unit_of_measurement = "kW"  # Direct string to avoid any confusion
             self._attr_device_class = SensorDeviceClass.POWER  # Use POWER device class for power sensors
-            self._attr_icon = "mdi:flash"
+            self._attr_icon = "mdi:flash"        
         else:
             # For other sensors
             self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
@@ -95,6 +95,10 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
             self._attr_icon = "mdi:transmission-tower"
 
+        if self.measurement_name.startswith('15min'):
+            # Individual measurement sensors
+            self._attr_state_class = SensorStateClass.MEASUREMENT
+            
     @property
     def state(self):
         """Return the state of the sensor."""
