@@ -80,23 +80,25 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = f"Moj Elektro {measurement_name.replace('_', ' ')}"
         self.measurement_name = measurement_name
         self._last_known_state = None
-        
+                
         if self.measurement_name.startswith('casovni_blok'):
             # For casovni_blok sensors
             self._attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
             self._attr_unit_of_measurement = "kW"  # Direct string to avoid any confusion
             self._attr_device_class = SensorDeviceClass.POWER  # Use POWER device class for power sensors
-            self._attr_icon = "mdi:flash"        
+            self._attr_icon = "mdi:flash"
         else:
             # For other sensors
             self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
             self._attr_unit_of_measurement = "kWh"  # Direct string to avoid any confusion
             self._attr_device_class = SensorDeviceClass.ENERGY
-            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
             self._attr_icon = "mdi:transmission-tower"
 
-        if self.measurement_name.startswith('15min'):
-            # Individual measurement sensors
+        if self.measurement_name.startswith('intervalreadings'):
+            # Cumulative meter
+            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        else:
+            # Everything else is a one-off interval measurement
             self._attr_state_class = SensorStateClass.MEASUREMENT
             
     @property
