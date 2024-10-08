@@ -23,9 +23,12 @@ from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
 
 from .const import DOMAIN, CONF_TOKEN, CONF_METER_ID, CONF_DECIMAL
+from .const import SETUP_TAG_15_ARRAY, SETUP_TAG_ARRAY, READING_TYPE_ARRAY
 from .moj_elektro_api import MojElektroApi  # Ensure this matches the actual location and name
 import logging
 from datetime import timedelta
+
+import json
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,19 +84,52 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
         self.measurement_name = measurement_name
         self._last_known_state = None
         
+        self._attr_unit_of_measurement = self.get_unit_of_measurement(measurement_name)
+        self._attr_native_unit_of_measurement = self.to_native_unit_of_measurement(self._attr_unit_of_measurement)
+
         if self.measurement_name.startswith('casovni_blok'):
             # For casovni_blok sensors
-            self._attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
-            self._attr_unit_of_measurement = "kW"  # Direct string to avoid any confusion
             self._attr_device_class = SensorDeviceClass.POWER  # Use POWER device class for power sensors
             self._attr_icon = "mdi:flash"
         else:
             # For other sensors
-            self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-            self._attr_unit_of_measurement = "kWh"  # Direct string to avoid any confusion
             self._attr_device_class = SensorDeviceClass.ENERGY
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
             self._attr_icon = "mdi:transmission-tower"
+
+    def to_native_unit_of_measurement(self, unit_of_measurement):
+        if unit_of_measurement == "kW":
+            return UnitOfPower.KILO_WATT
+        elif unit_of_measurement == "kWh":
+            return UnitOfEnergy.KILO_WATT_HOUR
+        else:
+            _LOGGER.debug("missing conversion to native_unit_of_measurement for '%s'.", unit_of_measurement)
+            return None
+
+    def get_unit_of_measurement(self, measurement_name):
+        oznaka = self.get_oznaka(measurement_name)
+        
+        if oznaka == None:
+            if measurement_name.startswith('casovni_blok'):
+                return "kW"
+            else:
+                return "kWh"
+
+        for item in json.loads(READING_TYPE_ARRAY):
+            if item.get("oznaka") == oznaka:
+                return item.get("enota")
+
+    def get_oznaka(self, measurement_name):
+        for item in json.loads(SETUP_TAG_15_ARRAY):
+            if item.get("sensor") == measurement_name:
+                return item.get("oznaka")
+
+        for item in json.loads(SETUP_TAG_ARRAY):
+            if item.get("sensor") == measurement_name:
+                return item.get("oznaka")
+
+        _LOGGER.debug("oznaka for measurement '%s' not found.", measurement_name)
+        return None
 
     @property
     def state(self):
