@@ -314,7 +314,13 @@ class MojElektroApi:
 
     def _extract_casovni_bloki(self, dogovorjene_moci):
         """Extract 'casovni bloki' from 'dogovorjene moci'."""
+        current_date = datetime.now()
+        
         for moca in dogovorjene_moci:
-            if moca.get('veljavnost'):
+            datum_od = datetime.strptime(moca.get('datumOd'), "%Y-%m-%dT%H:%M:%S%z")
+            datum_do = datetime.strptime(moca.get('datumDo'), "%Y-%m-%dT%H:%M:%S%z")
+            
+            # Check if the current date is within the validity period and veljavnost is true
+            if moca.get('veljavnost') and datum_od <= current_date <= datum_do:
                 return {f'casovni_blok_{i}': moca.get(f'casovniBlok{i}', 'N/A') for i in range(1, 6)}
         return {}
