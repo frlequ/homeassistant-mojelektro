@@ -317,8 +317,9 @@ class MojElektroApi:
         current_date = datetime.now()
         
         for moca in dogovorjene_moci:
-            datum_od = datetime.strptime(moca.get('datumOd'), "%Y-%m-%dT%H:%M:%S%z")
-            datum_do = datetime.strptime(moca.get('datumDo'), "%Y-%m-%dT%H:%M:%S%z")
+            # Parse and convert the datetimes to naive datetimes
+            datum_od = datetime.strptime(moca.get('datumOd'), "%Y-%m-%dT%H:%M:%S%z").replace(tzinfo=None)
+            datum_do = datetime.strptime(moca.get('datumDo'), "%Y-%m-%dT%H:%M:%S%z").replace(tzinfo=None)
             
             # Check if the current date is within the validity period and veljavnost is true
             if moca.get('veljavnost') and datum_od <= current_date <= datum_do:
