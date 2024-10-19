@@ -7,6 +7,6 @@
   "config_flow": true,
   "requirements": ["requests>=2.25.1"],
   "iot_class": "cloud_polling",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "issue_tracker": "https://github.com/frlequ/homeassistant-mojelektro/issues"
 }

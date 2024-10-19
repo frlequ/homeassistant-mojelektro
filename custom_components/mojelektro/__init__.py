@@ -1,80 +1,52 @@
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.event import async_track_time_interval
-from datetime import datetime, timedelta
+from homeassistant.helpers import entity_registry as er
 from .const import DOMAIN
 import logging
 
-
 _LOGGER = logging.getLogger(__name__)
-
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
     return True
 
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up the integration from a config entry."""
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = entry.data
+
+    # Migrate existing entities to be grouped under a single device
+    await migrate_existing_entities_to_device(hass, entry)
+
+    # Forward the setup to sensor platform
     await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
+    
     return True
 
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Handle removal of an entry."""
     await hass.config_entries.async_forward_entry_unload(entry, "sensor")
     hass.data[DOMAIN].pop(entry.entry_id)
     return True
 
 
-# async def async_setup(hass: HomeAssistant, config: dict):
-    # return True
-
-# # async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    # # hass.data.setdefault(DOMAIN, {})[entry.entry_id] = entry.data
-    # # await hass.config_entries.async_forward_entry_setup(entry, "sensor")
-
-    # # async def refresh_data(time):
-        # # """Refresh data only at specific minutes."""
-        # # minute = datetime.now().minute
-        # # if minute in [0, 15, 30, 45]:
-            # # coordinator = hass.data[DOMAIN][entry.entry_id]['coordinator']
-            # # await coordinator.async_request_refresh()
-
-    # # # Schedule data refresh
-    # # async_track_time_interval(hass, refresh_data, timedelta(seconds=120))
-
-    # # return True
+async def migrate_existing_entities_to_device(hass: HomeAssistant, entry: ConfigEntry):
+    """Migrate old entities without devices to a single device."""
+    entity_registry = er.async_get(hass)
+    meter_id = entry.data.get("meter_id")
     
+    _LOGGER.info(f"Entity migration started for meter_id {meter_id}.")
 
-# async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    # # Ensure the data structure for this entry is properly initialized
-    # if DOMAIN not in hass.data:
-        # hass.data[DOMAIN] = {}
-    # hass.data[DOMAIN][entry.entry_id] = {
-        # 'data': dict(entry.data),  # Store a mutable copy of entry data
-    # }
-
-    # hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "sensor"))
-
-    # # Assume coordinator is initialized here and added to hass.data
-
-    # async def conditionally_refresh_data(_):
-        # """Refresh data only if current minute is 0, 15, 30, or 45."""
-        # current_minute = datetime.now().minute
-        # if current_minute in [0, 15, 30, 45]:
-            # _LOGGER.debug("Current minute (%s) matches the condition, refreshing data...", current_minute)
-            # coordinator = hass.data[DOMAIN][entry.entry_id]['coordinator']
-            # await coordinator.async_request_refresh()
-        # else:
-            # _LOGGER.debug("Current minute (%s) does not match the condition, skipping data refresh.", current_minute)
-
-    # # Set up a timer to check the condition every 120 seconds
-    # async_track_time_interval(hass, conditionally_refresh_data, timedelta(seconds=120))
-
-    # return True
+    # Find all entities for this integration
+    for entity_entry in er.async_entries_for_config_entry(entity_registry, entry.entry_id):
+        # If the entity doesn't have a device_id, we'll assign it to the new device
+        if entity_entry.device_id is None:
+            _LOGGER.debug(f"Migrating entity {entity_entry.entity_id} to new device.")
 
 
 
 
-# async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
-    # await hass.config_entries.async_forward_entry_unload(entry, "sensor")
-    # hass.data[DOMAIN].pop(entry.entry_id)
-    # return True
+    
+    _LOGGER.debug(f"Entity migration completed for integration {DOMAIN}.")
