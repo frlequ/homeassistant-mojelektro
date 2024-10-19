@@ -201,7 +201,6 @@ class MojElektroApi:
                 tag = self.find_tag(reading_type, json.loads(READING_TYPE_ARRAY),1)
                 sensor = self.find_tag(tag, setup,3)
 
-
                 if sensor.split("_")[0] == "15min":
 
                     value = block.get("intervalReadings")[self.get15MinOffset()]['value']
@@ -217,12 +216,9 @@ class MojElektroApi:
                     value = float(block.get("intervalReadings")[blockLen-1]['value']) - float(block.get("intervalReadings")[blockLen-2]['value'])
 
                     sensor_output[sensor] = str(round(value, self.decimal))
-                    sensorMontly = sensor.replace("daily", "monthly")
+                    sensorMontly = sensor.replace("daily", "monthly")    
                     sensor_output[sensorMontly] = str(round(valuemonth, self.decimal))
-
-        # Include casovni_blok data
-        sensor_output.update(data)
-
+                    
         return sensor_output
 
 
@@ -314,7 +310,14 @@ class MojElektroApi:
 
     def _extract_casovni_bloki(self, dogovorjene_moci):
         """Extract 'casovni bloki' from 'dogovorjene moci'."""
+        current_date = datetime.now()
+        
         for moca in dogovorjene_moci:
-            if moca.get('veljavnost'):
-                return {f'casovni_blok_{i}': moca.get(f'casovni_blok_{i}', 'N/A') for i in range(1, 6)}
+            # Parse and convert the datetimes to naive datetimes
+            datum_od = datetime.strptime(moca.get('datumOd'), "%Y-%m-%dT%H:%M:%S%z").replace(tzinfo=None)
+            datum_do = datetime.strptime(moca.get('datumDo'), "%Y-%m-%dT%H:%M:%S%z").replace(tzinfo=None)
+            
+            # Check if the current date is within the validity period and veljavnost is true
+            if moca.get('veljavnost') and datum_od <= current_date <= datum_do:
+                return {f'casovni_blok_{i}': moca.get(f'casovniBlok{i}', 'N/A') for i in range(1, 6)}
         return {}

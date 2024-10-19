@@ -18,8 +18,8 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-
 from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
 
 from .const import DOMAIN, CONF_TOKEN, CONF_METER_ID, CONF_DECIMAL
@@ -73,6 +73,9 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
 
         super().__init__(coordinator)
 
+        # Store meter_id as an instance variable
+        self.meter_id = meter_id
+
         current_ids = hass.states.async_entity_ids()
         entity_id = generate_entity_id( ENTITY_ID_FORMAT, f"{DOMAIN}_{measurement_name.lower()}", current_ids )
 
@@ -80,7 +83,7 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = f"Moj Elektro {measurement_name.replace('_', ' ')}"
         self.measurement_name = measurement_name
         self._last_known_state = None
-        
+
         if self.measurement_name.startswith('casovni_blok'):
             # For casovni_blok sensors
             self._attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
@@ -95,6 +98,19 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
             self._attr_icon = "mdi:transmission-tower"
 
+            
+    @property
+    def device_info(self):
+        """Return device information for grouping sensors under a device."""
+        return {
+            "identifiers": {(DOMAIN, self.meter_id)},  # Use the stored meter_id
+            "name": "Moj Elektro",
+            "manufacturer": "Moj Elektro",
+            "model": {self.meter_id},  # Include meter_id in the model
+            "sw_version": "0.2.1",
+            "entry_type": DeviceEntryType.SERVICE,  # Use enum instead of string
+        }
+        _LOGGER.debug(f"Setting up device info {self.meter_id} .")
     @property
     def state(self):
         """Return the state of the sensor."""
