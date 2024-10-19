@@ -320,4 +320,5 @@ class MojElektroApi:
             # Check if the current date is within the validity period and veljavnost is true
             if moca.get('veljavnost') and datum_od <= current_date <= datum_do:
                 return {f'casovni_blok_{i}': moca.get(f'casovniBlok{i}', 'N/A') for i in range(1, 6)}
+
         return {}
