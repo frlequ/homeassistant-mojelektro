@@ -12,12 +12,8 @@ This is an updated version of the custom component for integrating electric util
 <sub> *Example of Moj Elektro API using Apex Chart Card. You can find yaml in https://github.com/frlequ/mojelektro-apex-chart </sub> 
 
 
-
-### Warning for existing users
-This update should not erase existing sensors, ~~but will not update the energy produced `_output` entities.~~ Fixed!
-
 > [!NOTE]
-> **Note about data:** This integration gathers energy information with a 24-hour delay because API doesn't provide real-time data. Unfortunately, this delay leads to inaccurate readings, especially between midnight and 6 a.m as data aggregates. The problem lies with Moj Elektro, and there's no way around it.
+> **Note about data:** This integration gathers energy information with a **24-hour delay** because API doesn't provide real-time data. Unfortunately, this delay leads to inaccurate readings, especially between midnight and 6 a.m as data aggregates. The problem lies with Moj Elektro, and there's no way around it.
 
 
 ## Setup API
@@ -38,13 +34,22 @@ _Restart Home Assistant_
 
 ## Configuration
 In Home Assistant
-1. Go to Settings > Add intergration > search > Moj Elektro
+1. Go to Settings > Add integration > search > Moj Elektro
 2. Enter credentials:
 
 ![Screenshot of a Moj Electro setup in Home Assistant.](/assets/setup.jpg)
 
 > [!NOTE]
 > _As for version 0.2.0 there is no need for `configuration.yaml` file edit!_
+
+## Network Tariff Blocks
+If you are also searching for current tariff blocks (omrežnina), you can find integration here:
+
+https://github.com/frlequ/home-assistant-network-tariff
+
+and the custom card:
+
+https://github.com/frlequ/network-tariff-card
 
 ## Roadmap
 
