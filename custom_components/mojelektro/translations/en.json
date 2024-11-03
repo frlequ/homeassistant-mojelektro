@@ -7,7 +7,10 @@
         "data": {
           "token": "Token",
           "meter_id": "Meter ID (EIMM)",
-		  "decimal": "Decimal places for energy sensors (0-10)"
+		  "decimal": "Decimal places for sensors."
+        },
+		"data_description": {
+          "decimal": "Leave empty for default (4) or enter decimal places for energy sensors (0-10)."
         }
       }
     },

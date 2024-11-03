@@ -2,8 +2,9 @@ from datetime import datetime, timedelta
 import json
 import aiohttp
 import logging
+from dateutil import parser
 
-from .const import SETUP_TAG_15_ARRAY, SETUP_TAG_ARRAY, READING_TYPE_ARRAY
+from .const import SETUP_TAG_15_ARRAY, SETUP_TAG_ARRAY, READING_TYPE_ARRAY, SETUP_TAG_BLOCKS_ARRAY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,7 +75,10 @@ class MojElektroApi:
                 #organize sensors
                 sensor_return.update(self.sensors_output(cache.get('15'), json.loads(SETUP_TAG_15_ARRAY)))
                 sensor_return.update(self.sensors_output(cache.get('meter'), json.loads(SETUP_TAG_ARRAY)))
-
+                
+                #calc consumption by blocks
+                sensor_return.update(self.consumption_by_block(cache.get('15'), json.loads(SETUP_TAG_BLOCKS_ARRAY)))
+                
                 # Fetch časovni blok values
                 casovni_blok = await self.get_casovni_blok()
                 sensor_return.update(casovni_blok)
@@ -204,7 +208,7 @@ class MojElektroApi:
                 if sensor.split("_")[0] == "15min":
 
                     value = block.get("intervalReadings")[self.get15MinOffset()]['value']
-                    sensor_output[sensor] = str(value)
+                    sensor_output[sensor] = str(round(float(value), self.decimal))
 
                 else:
                     blockLen = len(block.get("intervalReadings", []))
@@ -322,3 +326,136 @@ class MojElektroApi:
                 return {f'casovni_blok_{i}': moca.get(f'casovniBlok{i}', 'N/A') for i in range(1, 6)}
 
         return {}
+        
+        
+    # Calculate consumption by block
+    def consumption_by_block(self, data, blocks):
+        # Initialize variables to store summed values
+        blocks_sums = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        
+        # If data is a list, use the first item as the source of readings
+        if isinstance(data, list):
+            data = data[0] if data else {}
+
+        # Verify if data has 'intervalReadings' directly
+        interval_readings = data.get("intervalReadings", [])
+        
+        for reading in interval_readings:
+            timestamp = reading["timestamp"]
+            value = float(reading["value"])
+            
+            # Determine the block based on timestamp
+            block_num = self.calculate_tariff(timestamp)
+
+            # Sum the value into the corresponding block
+            blocks_sums[block_num] += value
+
+        # Map block sums to sensor names
+        result = {}
+        for mapping in blocks:
+            oznaka = mapping["oznaka"]
+            sensor = mapping["sensor"]
+
+            # Extract block number from 'oznaka' (e.g., "blok_1" -> 1)
+            block_num = int(oznaka.split("_")[1])
+            result[sensor] = round(blocks_sums[block_num], self.decimal)
+
+        return result
+        
+    def calculate_easter(self, year):
+        """Calculate Easter Sunday for a given year."""
+        a = year % 19
+        b = year // 100
+        c = year % 100
+        d = b // 4
+        e = b % 4
+        f = (b + 8) // 25
+        g = (b - f + 1) // 3
+        h = (19 * a + b - d - g + 15) % 30
+        i = c // 4
+        k = c % 4
+        l = (32 + 2 * e + 2 * i - h - k) % 7
+        m = (a + 11 * h + 22 * l) // 451
+        month = (h + l - 7 * m + 114) // 31
+        day = ((h + l - 7 * m + 114) % 31) + 1
+        return datetime.date(year, month, day)
+
+    def get_easter_saturday_monday(self, year):
+        """Calculate Easter Saturday and Easter Monday for a given year."""
+        easter_sunday = self.calculate_easter(year)
+        easter_saturday = easter_sunday - datetime.timedelta(days=1)
+        easter_monday = easter_sunday + datetime.timedelta(days=1)
+        return easter_saturday, easter_monday
+
+    def is_weekend_or_holiday(self, date):
+        """Check if the date is a weekend or a public holiday in Slovenia."""
+        # Check if it's Saturday or Sunday (weekend)
+        if date.weekday() in [5, 6]:
+            return True
+        
+        # List of fixed public holidays in Slovenia
+        public_holidays = [
+            (1, 1),    # New Year's Day
+            (1, 2),    # New Year's Day
+            (2, 8),    # Preseren Day
+            (4, 27),   # Resistance Day
+            (5, 1),    # Labour Day
+            (5, 2),    # Labour Day
+            (6, 25),   # Statehood Day
+            (8, 15),   # Assumption Day
+            (10, 31),  # National Reformation Day
+            (11, 1),   # All Saints' Day
+            (12, 25),  # Christmas
+            (12, 26),  # Independence and Unity Day
+        ]
+        
+        # Calculate Easter Saturday and Easter Monday for the year of the given date
+        easter_saturday, easter_monday = self.get_easter_saturday_monday(date.year)
+        
+        # Add Easter Saturday and Easter Monday to the list of public holidays
+        public_holidays.append((easter_saturday.month, easter_saturday.day))
+        public_holidays.append((easter_monday.month, easter_monday.day))
+        
+        # Check if the date matches any public holiday
+        if (date.month, date.day) in public_holidays:
+            print("hollyday")
+            return True
+
+        return False
+
+
+    def calculate_tariff(self, timestamp):
+
+        
+        date = parser.parse(timestamp) - timedelta(minutes=15)
+
+        
+        month = date.month
+        hour = date.hour
+        is_high_season = month in [11, 12, 1, 2]
+        weekend_or_holiday = self.is_weekend_or_holiday(date)
+
+        # Define tariff rates in a more structured form
+        # (hour_range, high_season_rate, low_season_rate)
+        tariffs = [
+            ((0, 5), (3, 4), (5, 4)),  # Early morning
+            ((6, 6), (2, 3), (4, 3)),  # 6 AM
+            ((7, 13), (1, 2), (3, 2)),  # Morning to early afternoon
+            ((14, 15), (2, 3), (4, 3)),  # Early afternoon
+            ((16, 19), (1, 2), (3, 2)),  # Late afternoon to early evening
+            ((20, 21), (2, 3), (4, 3)),  # Evening
+            ((22, 23), (3, 4), (5, 4)),  # Late evening
+        ]
+
+        for time_range, high_season_tariff, low_season_tariff in tariffs:
+            start, end = time_range
+            if start <= hour <= end:
+                if is_high_season and not weekend_or_holiday:
+                    return high_season_tariff[0]
+                elif not is_high_season and weekend_or_holiday:
+                    return low_season_tariff[0]
+                else:
+                    return high_season_tariff[1] if is_high_season else low_season_tariff[1]
+        
+        # Default tariff if none of the conditions above are met
+        return 0

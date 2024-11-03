@@ -57,6 +57,7 @@ https://github.com/frlequ/network-tariff-card
 - [X] Add config flow (Home Assistant UI setup)
 - [X] Add decimals options for meters
 - [X] Add tariff block power
+- [X] Add energy consumption by blocks
 - [ ] Add option to save to long term statistics
 - [X] Multi-language Support
     - [X] English

@@ -107,7 +107,7 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
             "name": "Moj Elektro",
             "manufacturer": "Moj Elektro",
             "model": {self.meter_id},  # Include meter_id in the model
-            "sw_version": "0.2.3",
+            "sw_version": "0.2.4",
             "entry_type": DeviceEntryType.SERVICE,  # Use enum instead of string
         }
         _LOGGER.debug(f"Setting up device info {self.meter_id} .")
