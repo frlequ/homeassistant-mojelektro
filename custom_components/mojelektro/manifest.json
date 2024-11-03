@@ -1,12 +1,12 @@
 {
   "domain": "mojelektro",
   "name": "Moj Elektro",
-  "documentation": "https://github.com/frlequ/homeassistant-mojelektro",
-  "dependencies": [],
   "codeowners": [],
   "config_flow": true,
-  "requirements": ["requests>=2.25.1"],
+  "dependencies": [],
+  "documentation": "https://github.com/frlequ/homeassistant-mojelektro",
   "iot_class": "cloud_polling",
-  "version": "0.2.4",
-  "issue_tracker": "https://github.com/frlequ/homeassistant-mojelektro/issues"
+  "issue_tracker": "https://github.com/frlequ/homeassistant-mojelektro/issues",
+  "requirements": ["requests>=2.25.1"],
+  "version": "0.2.4"
 }
