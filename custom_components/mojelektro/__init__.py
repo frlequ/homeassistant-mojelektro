@@ -2,15 +2,18 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import config_validation as cv
 from .const import DOMAIN
 import logging
 
 _LOGGER = logging.getLogger(__name__)
 
+# Define CONFIG_SCHEMA as config entry only
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: dict):
+    """Set up the integration via configuration.yaml (if applicable)."""
     return True
-
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up the integration from a config entry."""
@@ -24,13 +27,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     
     return True
 
-
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Handle removal of an entry."""
-    await hass.config_entries.async_forward_entry_unload(entry, "sensor")
-    hass.data[DOMAIN].pop(entry.entry_id)
-    return True
-
+    unload_ok = await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
 
 async def migrate_existing_entities_to_device(hass: HomeAssistant, entry: ConfigEntry):
     """Migrate old entities without devices to a single device."""
@@ -44,9 +46,5 @@ async def migrate_existing_entities_to_device(hass: HomeAssistant, entry: Config
         # If the entity doesn't have a device_id, we'll assign it to the new device
         if entity_entry.device_id is None:
             _LOGGER.debug(f"Migrating entity {entity_entry.entity_id} to new device.")
-
-
-
-
     
     _LOGGER.debug(f"Entity migration completed for integration {DOMAIN}.")
