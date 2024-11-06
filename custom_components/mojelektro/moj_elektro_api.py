@@ -378,13 +378,13 @@ class MojElektroApi:
         m = (a + 11 * h + 22 * l) // 451
         month = (h + l - 7 * m + 114) // 31
         day = ((h + l - 7 * m + 114) % 31) + 1
-        return datetime.date(year, month, day)
+        return datetime(year, month, day)
 
     def get_easter_saturday_monday(self, year):
         """Calculate Easter Saturday and Easter Monday for a given year."""
         easter_sunday = self.calculate_easter(year)
-        easter_saturday = easter_sunday - datetime.timedelta(days=1)
-        easter_monday = easter_sunday + datetime.timedelta(days=1)
+        easter_saturday = easter_sunday - timedelta(days=1)
+        easter_monday = easter_sunday + timedelta(days=1)
         return easter_saturday, easter_monday
 
     def is_weekend_or_holiday(self, date):
