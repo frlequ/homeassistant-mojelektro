@@ -21,6 +21,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
+import os
+import json
 
 from .const import DOMAIN, CONF_TOKEN, CONF_METER_ID, CONF_DECIMAL
 from .moj_elektro_api import MojElektroApi  # Ensure this matches the actual location and name
@@ -107,7 +109,7 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
             "name": "Moj Elektro",
             "manufacturer": "Moj Elektro",
             "model": {self.meter_id},  # Include meter_id in the model
-            "sw_version": "0.2.5",
+            "sw_version": self.get_version(),
             "entry_type": DeviceEntryType.SERVICE,  # Use enum instead of string
         }
         _LOGGER.debug(f"Setting up device info {self.meter_id} .")
@@ -128,3 +130,10 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
             return self._last_known_state
             
         return None
+
+    # Get the version from the manifest.json
+    def get_version(self):
+        manifest_path = os.path.join(os.path.dirname(__file__), 'manifest.json')
+        with open(manifest_path, 'r') as f:
+            manifest = json.load(f)
+        return manifest.get('version', 'Unknown')
