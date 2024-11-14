@@ -332,23 +332,24 @@ class MojElektroApi:
     def consumption_by_block(self, data, blocks):
         # Initialize variables to store summed values
         blocks_sums = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
-        
-        # If data is a list, use the first item as the source of readings
-        if isinstance(data, list):
-            data = data[0] if data else {}
 
-        # Verify if data has 'intervalReadings' directly
-        interval_readings = data.get("intervalReadings", [])
-        
-        for reading in interval_readings:
-            timestamp = reading["timestamp"]
-            value = float(reading["value"])
-            
-            # Determine the block based on timestamp
-            block_num = self.calculate_tariff(timestamp)
+        # Specify the readingType
+        reading_type = "32.0.2.4.1.2.12.0.0.0.0.0.0.0.0.3.72.0"
 
-            # Sum the value into the corresponding block
-            blocks_sums[block_num] += value
+        for block in data:
+            if block.get("readingType") == reading_type:
+                # Extract intervalReadings from the block
+                interval_readings = block.get("intervalReadings", [])
+                _LOGGER.debug(f"interval_readings: {interval_readings} ")
+                for reading in interval_readings:
+                    timestamp = reading["timestamp"]
+                    value = float(reading["value"])
+                    
+                    # Determine the block based on timestamp
+                    block_num = self.calculate_tariff(timestamp)
+
+                    # Sum the value into the corresponding block
+                    blocks_sums[block_num] += value
 
         # Map block sums to sensor names
         result = {}
