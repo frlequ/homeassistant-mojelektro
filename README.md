@@ -1,4 +1,4 @@
-[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Ffrlequ%2Fhomeassistant-mojelektro&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://github.com/frlequ/homeassistant-mojelektro/)
+[![hacs default](https://img.shields.io/badge/HACS-Default-green.svg)](https://hacs.xyz)
 [![GitHub issues](https://img.shields.io/github/issues/frlequ/homeassistant-mojelektro)](https://github.com/frlequ/homeassistant-mojelektro/issues) 
 ![GitHub User's stars](https://img.shields.io/github/stars/frlequ)
 ![GitHub Repo stars](https://img.shields.io/github/stars/frlequ/homeassistant-mojelektro)
@@ -25,12 +25,13 @@ This is an updated version of the custom component for integrating electric util
 
 
 ## Installation
-
-**Method 1 _(easiest)_:** [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=frlequ&repository=homeassistant-mojelektro&category=integration)
-
-**Method 2:** Manually copy `mojelektro` folder from [latest release](https://github.com/frlequ/homeassistant-mojelektro/releases/latest) to `custom_components` folder.
-
-_Restart Home Assistant_
+1. **Either**
+    - Method 1 _(easiest)_: Find and download `Moj Elektro` `integration` in HACS. Moj Elektro is now part of default HACS repository.
+    
+    - Method 2: [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=frlequ&repository=homeassistant-mojelektro&category=integration)
+    
+    - Method 3: Manually copy `mojelektro` folder from [latest release](https://github.com/frlequ/homeassistant-mojelektro/releases/latest) to `custom_components` folder.
+2. _After download restart Home Assistant!_
 
 ## Configuration
 In Home Assistant
