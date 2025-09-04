@@ -177,7 +177,8 @@ class MojElektroApi:
         current_date = datetime.now()
         self.date_to = current_date.strftime("%Y-%m-%d")
         if rType == '15min':
-            self.date_from = (current_date - timedelta(days=1)).strftime("%Y-%m-%d")
+            self.date_from = (current_date - timedelta(days=2)).strftime("%Y-%m-%d")
+            self.date_to = (current_date - timedelta(days=1)).strftime("%Y-%m-%d")
             url = f'https://api.informatika.si/mojelektro/v1/meter-readings?usagePoint={self.meter_id}&startTime={self.date_from}&endTime={self.date_to}{params}'
         else:
             if current_date.day == 1:
@@ -218,10 +219,14 @@ class MojElektroApi:
 
                     #calculate daily energy
                     value = float(block.get("intervalReadings")[blockLen-1]['value']) - float(block.get("intervalReadings")[blockLen-2]['value'])
+                    #store total energy
+                    valuetotal = float(block.get("intervalReadings")[blockLen-1]['value'])
 
                     sensor_output[sensor] = str(round(value, self.decimal))
                     sensorMontly = sensor.replace("daily", "monthly")    
                     sensor_output[sensorMontly] = str(round(valuemonth, self.decimal))
+                    sensorTotal = sensor.replace("daily", "total")
+                    sensor_output[sensorTotal] = str(round(valuetotal, self.decimal))
                     
         return sensor_output
 
@@ -236,7 +241,7 @@ class MojElektroApi:
             self.cacheOK = False
         else:
             #Check data against itself. This is nessesary as Mojelektro can parse wrong data.
-            cur_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+            cur_date = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
             match_date = datetime.strptime(cache.get("15")[0]['intervalReadings'][0]['timestamp'], "%Y-%m-%dT%H:%M:%S%z").strftime("%Y-%m-%d")
 
             #Ugly way get 15min
