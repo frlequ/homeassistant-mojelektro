@@ -35,6 +35,8 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
     """Set up MojeElektro sensors dynamically from a config entry."""
 
+    # Load version once during setup
+    version = await hass.async_add_executor_job(_get_version)
 
     token = entry.data[CONF_TOKEN]
     meter_id = entry.data[CONF_METER_ID]
@@ -57,11 +59,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     await coordinator.async_refresh()
 
     # Store coordinator for reference in sensor entities
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
+        'coordinator': coordinator,
+        'version': version
+    }
 
     # Corrected part: Directly iterate over keys of coordinator.data
     sensors = [
-        MojElektroSensor(coordinator, entry.entry_id, measurement, meter_id, hass)
+        MojElektroSensor(coordinator, entry.entry_id, measurement, meter_id, hass, version)
         for measurement in coordinator.data.keys()
     ]
     async_add_entities(sensors)
@@ -70,13 +75,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 class MojElektroSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Sensor from MojElektro."""
 
-    def __init__(self, coordinator, entry_id, measurement_name, meter_id, hass):
+    def __init__(self, coordinator, entry_id, measurement_name, meter_id, hass, version):
 
 
         super().__init__(coordinator)
 
         # Store meter_id as an instance variable
         self.meter_id = meter_id
+        self._version = version
 
         current_ids = hass.states.async_entity_ids()
         entity_id = generate_entity_id( ENTITY_ID_FORMAT, f"{DOMAIN}_{measurement_name.lower()}", current_ids )
@@ -109,7 +115,7 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
             "name": "Moj Elektro",
             "manufacturer": "Moj Elektro",
             "model": {self.meter_id},  # Include meter_id in the model
-            "sw_version": self.get_version(),
+            "sw_version": self._version,
             "entry_type": DeviceEntryType.SERVICE,  # Use enum instead of string
         }
         _LOGGER.debug(f"Setting up device info {self.meter_id} .")
@@ -131,9 +137,9 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
             
         return None
 
-    # Get the version from the manifest.json
-    def get_version(self):
-        manifest_path = os.path.join(os.path.dirname(__file__), 'manifest.json')
-        with open(manifest_path, 'r') as f:
-            manifest = json.load(f)
+def _get_version() -> str:
+    """Get the version from the manifest.json"""
+    manifest_path = os.path.join(os.path.dirname(__file__), 'manifest.json')
+    with open(manifest_path, 'r') as f:
+        manifest = json.load(f)
         return manifest.get('version', 'Unknown')
