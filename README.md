@@ -19,7 +19,7 @@ This is an updated version of the custom component for integrating electric util
 ## Setup API
 
 1. Log in to Mojelektro.si using any available login options.
-2. Under `Moj Profil`, find the option to create a token `Kreiraj žeton`. Use unlimited expiration and click  `Create Token.`
+2. Under `API storitve`, find the option to create a token `Kreiraj žeton`. Use unlimited expiration and click  `Kreiraj žeton.`
 4. Copy the newly generated token. You'll need it in the configuration step.
 5. Your `meter_id` is `EIMM` number found und `Merilna mesta/merilne točke`
 
