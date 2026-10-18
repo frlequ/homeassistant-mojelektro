@@ -108,7 +108,7 @@ class MojElektroSensor(CoordinatorEntity, SensorEntity):
             "identifiers": {(DOMAIN, self.meter_id)},  # Use the stored meter_id
             "name": "Moj Elektro",
             "manufacturer": "Moj Elektro",
-            "model": {self.meter_id},  # Include meter_id in the model
+            "model": str(self.meter_id),  # Include meter_id in the model
             "sw_version": self.get_version(),
             "entry_type": DeviceEntryType.SERVICE,  # Use enum instead of string
         }
