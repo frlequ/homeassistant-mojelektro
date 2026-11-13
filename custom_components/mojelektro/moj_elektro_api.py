@@ -448,6 +448,17 @@ class MojElektroApi:
             ((22, 23), (3, 4), (5, 4)),  # Late evening
         ]
 
+        # New time blocks from 1 January 2027
+        if date.year >= 2027:
+            tariffs = [
+                ((0, 5), (3, 4), (5, 5)),  # Early morning
+                ((6, 11), (1, 3), (4, 3)),  # Morning
+                ((12, 16), (2, 4), (5, 4)),  # Midday to afternoon
+                ((17, 19), (1, 3), (4, 3)),  # Late afternoon to early evening
+                ((20, 21), (2, 3), (4, 3)),  # Evening
+                ((22, 23), (3, 4), (5, 5)),  # Late evening
+            ]
+
         for time_range, high_season_tariff, low_season_tariff in tariffs:
             start, end = time_range
             if start <= hour <= end:
